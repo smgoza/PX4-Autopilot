@@ -37,6 +37,7 @@
  * Defines basic functionality of UAVCAN parameter management class
  *
  * @author Jacob Crabill <jacob@flyvoly.com>
+ * @author Peter van der Perk <peter.vanderperk@nxp.com>
  */
 
 #pragma once
@@ -99,11 +100,13 @@ public:
 private:
 
 
-	const UavcanParamBinder _uavcan_params[11] {
+	const UavcanParamBinder _uavcan_params[13] {
 		{"uavcan.pub.esc.0.id",                "UCAN1_ESC_PUB",		    px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
+		{"uavcan.pub.esc_readiness.0.id",      "UCAN1_ESC_RE_PUB",   	px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
 		{"uavcan.pub.servo.0.id",              "UCAN1_SERVO_PUB",		px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
 		{"uavcan.pub.gps.0.id",                "UCAN1_GPS_PUB",		    px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
 		{"uavcan.sub.esc.0.id",                "UCAN1_ESC0_PID",		px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
+		{"uavcan.sub.esc_readiness.0.id",      "UCAN1_ESC_RE_PID",   	px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
 		{"uavcan.sub.gps.0.id",                "UCAN1_GPS0_PID",		px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
 		{"uavcan.sub.gps.1.id",                "UCAN1_GPS1_PID",		px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
 		{"uavcan.sub.energy_source.0.id",      "UCAN1_BMS_ES_PID",		px4_param_to_uavcan_port_id, uavcan_port_id_to_px4_param},
