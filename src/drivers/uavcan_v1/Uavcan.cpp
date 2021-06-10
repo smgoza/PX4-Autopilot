@@ -294,6 +294,14 @@ void UavcanNode::transmit()
 				// Timeout - just exit and try again later
 				break;
 			}
+
+		} else if (txf->timestamp_usec <= now) {
+			// Deadline missed - drop the frame and report
+			canardTxPop(&_canard_instance);
+
+			// Deallocate the dynamic memory afterwards.
+			_canard_instance.memory_free(&_canard_instance, (CanardFrame *)txf);
+			PX4_ERR("Transmission deadline missed, frame dropped");
 		}
 	}
 }
