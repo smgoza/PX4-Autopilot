@@ -271,9 +271,13 @@ void UavcanNode::transmit()
 	for (const CanardFrame *txf = nullptr; (txf = canardTxPeek(&_canard_instance)) != nullptr;) {
 		// Attempt transmission only if the frame is not yet timed out while waiting in the TX queue.
 		// Otherwise just drop it and move on to the next one.
-		if (txf->timestamp_usec == 0 || txf->timestamp_usec > hrt_absolute_time()) {
+		const hrt_abstime now = hrt_absolute_time();
+		const uint64_t ts_deadline = (uint64_t)txf->timestamp_usec;
+
+		if (ts_deadline == 0UL || (hrt_abstime)ts_deadline > now) {
 			// Send the frame. Redundant interfaces may be used here.
 			const int tx_res = _can_interface->transmit(*txf);
+			printf("[tx] timestamp_usec: %d, now: %d, result: %d\n", txf->timestamp_usec, now, tx_res);
 
 			if (tx_res < 0) {
 				// Failure - drop the frame and report
@@ -295,13 +299,16 @@ void UavcanNode::transmit()
 				break;
 			}
 
-		} else if (txf->timestamp_usec <= now) {
+
+		} else if (ts_deadline > 0 && ts_deadline <= now) {
+			printf("[tx-timeout] timestamp_usec: %d, now: %d\n", txf->timestamp_usec, now);
+
 			// Deadline missed - drop the frame and report
 			canardTxPop(&_canard_instance);
 
 			// Deallocate the dynamic memory afterwards.
 			_canard_instance.memory_free(&_canard_instance, (CanardFrame *)txf);
-			PX4_ERR("Transmission deadline missed, frame dropped");
+			// PX4_ERR("Transmission deadline missed, frame dropped");
 		}
 	}
 }
@@ -434,7 +441,7 @@ void UavcanNode::sendHeartbeat()
 		const hrt_abstime now = hrt_absolute_time();
 
 		CanardTransfer transfer = {
-			.timestamp_usec = now + PUBLISHER_DEFAULT_TIMEOUT_USEC,
+			.timestamp_usec = (CanardMicrosecond)(now + 100000_us),
 			.priority       = CanardPriorityNominal,
 			.transfer_kind  = CanardTransferKindMessage,
 			.port_id        = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_,
@@ -443,7 +450,7 @@ void UavcanNode::sendHeartbeat()
 			.payload_size   = uavcan_node_Heartbeat_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
 			.payload        = &_uavcan_node_heartbeat_buffer,
 		};
-
+		printf("[hb] timestamp_usec: %" PRIu64 ", now: %" PRIu64 ", now+100 %" PRIu64 "\n", (uint64_t)transfer.timestamp_usec, now, now + PUBLISHER_DEFAULT_TIMEOUT_USEC);
 		uavcan_node_Heartbeat_1_0_serialize_(&heartbeat, _uavcan_node_heartbeat_buffer, &transfer.payload_size);
 
 		int32_t result = canardTxPush(&_canard_instance, &transfer);
