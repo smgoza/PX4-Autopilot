@@ -1826,7 +1826,6 @@ MavlinkReceiver::handle_message_rc_channels_override(mavlink_message_t *msg)
 
 	// fill uORB message
 	input_rc_s rc{};
-	rc.timestamp_last_signal = hrt_absolute_time();
 	rc.rssi = RC_INPUT_RSSI_MAX;
 	rc.rc_total_frame_count = 1;
 	rc.input_source = input_rc_s::RC_INPUT_SOURCE_MAVLINK;
@@ -1868,7 +1867,7 @@ MavlinkReceiver::handle_message_rc_channels_override(mavlink_message_t *msg)
 	}
 
 	// publish uORB message
-	rc.timestamp = hrt_absolute_time();
+	rc.timestamp = rc.timestamp_last_signal = hrt_absolute_time();
 	_rc_pub.publish(rc);
 }
 
@@ -1884,13 +1883,12 @@ MavlinkReceiver::handle_message_manual_control(mavlink_message_t *msg)
 	}
 
 	manual_control_input_s manual{};
-	manual.timestamp_sample = hrt_absolute_time();
 	manual.x = man.x / 1000.0f;
 	manual.y = man.y / 1000.0f;
 	manual.r = man.r / 1000.0f;
 	manual.z = man.z / 1000.0f;
 	manual.data_source = manual_control_input_s::SOURCE_MAVLINK_0 + _mavlink->get_instance_id();
-	manual.timestamp = hrt_absolute_time();
+	manual.timestamp = manual.timestamp_sample = hrt_absolute_time();
 	_manual_control_input_pub.publish(manual);
 }
 
