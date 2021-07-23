@@ -95,8 +95,9 @@ def main():
                         board_excluded = True
                     # handle mixer files differently than startup files
                     if file_path.endswith(".mix"):
-                        if line.startswith(("Z:", "M:", "R: ", "O:", "S:",
-                                            "H:", "T:", "P:")):
+                        #if line.startswith(("Z:", "M:", "R: ", "O:", "S:",
+                        #                    "H:", "T:", "P:")):
+                        if line.startswith(("Z:", "M:", "R: ", "O:", "S:", "H:", "T:", "P:", "A:", "U:", "Q:", "N:", "L:", "X:", "F:", "Y:", "W:")):
                             # reduce multiple consecutive spaces into a
                             # single space
                             line_reduced = re.sub(' +', ' ', line)

@@ -48,6 +48,7 @@ add_library(mixer
 
 target_link_libraries(mixer
 	PRIVATE
+		OspreyMixer
 		HelicopterMixer
 		MultirotorMixer
 		NullMixer

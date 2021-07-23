@@ -140,6 +140,7 @@ px4_add_romfs_files(
 	15001_coax_heli
 
 	16001_helicopter
+	16002_osprey
 
 	24001_dodeca_cox
 
