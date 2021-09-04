@@ -34,6 +34,7 @@
 # required by other mixers
 add_subdirectory(MixerBase)
 
+add_subdirectory(OspreyMixer)
 add_subdirectory(HelicopterMixer)
 add_subdirectory(MultirotorMixer)
 add_subdirectory(NullMixer)

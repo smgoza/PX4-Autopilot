@@ -343,7 +343,7 @@ MultirotorMixer::mix(float *outputs, unsigned space)
 	float pitch   = math::constrain(get_control(0, 1) * _pitch_scale, -1.0f, 1.0f);
 	float yaw     = math::constrain(get_control(0, 2) * _yaw_scale, -1.0f, 1.0f);
 	float thrust  = math::constrain(get_control(0, 3), 0.0f, 1.0f);
-
+    printf("ctrls A %d E %d R %d T %d\n", (int)(roll*1000), (int)(pitch*1000), (int)(yaw*1000), (int)(thrust*1000));
 	// clean out class variable used to capture saturation
 	_saturation_status.value = 0;
 

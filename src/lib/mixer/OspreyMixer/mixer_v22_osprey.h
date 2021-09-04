@@ -1,5 +1,4 @@
-#ifndef _MIXER_V22_OSPREY_H
-#define _MIXER_V22_OSPREY_H value
+#pragma once
 
 /**
  * Rotormast V22 Osprey mixer.
@@ -7,6 +6,7 @@
  * Collects four inputs (roll, pitch, yaw, thrust) and mixes them to servo commands
  * for swash plate tilting and throttle- and pitch curves.
  */
+#include <mixer/MixerBase/Mixer.hpp>
 
 class V22OspreyServo
 {
@@ -33,7 +33,7 @@ public:
 };
 
 
-class __EXPORT V22OspreyMixer : public Mixer
+class V22OspreyMixer : public Mixer
 {
 public:
     enum {	NUM_VOL_POINTS=3,
@@ -75,8 +75,12 @@ public:
 					float *leftColCurveA,
 					float *rightColCurveA,
 					V22OspreyServo servo_dataA[NUM_MAIN_SERVOS]);
-    ~V22OspreyMixer();
+    virtual ~V22OspreyMixer();
 
+	V22OspreyMixer(const V22OspreyMixer &) = delete;
+	V22OspreyMixer &operator=(const V22OspreyMixer &) = delete;
+	V22OspreyMixer(V22OspreyMixer &&) = delete;
+	V22OspreyMixer &operator=(V22OspreyMixer &&) = delete;
     /**
      * Factory method.
      *
@@ -98,21 +102,15 @@ public:
                                      const char *buf,
                                      unsigned &buflen);
 
-    virtual unsigned mix(float *outputs, unsigned space) override;
-    virtual void groups_required(uint32_t &groups) override;
+    unsigned mix(float *outputs, unsigned space) override;
+    void groups_required(uint32_t &groups) override;
 
-    virtual uint16_t get_saturation_status(void) override { return 0; }
     unsigned set_trim(float trim) override { return NUM_MAIN_SERVOS; }
 	unsigned get_trim(float *trim) override { return NUM_MAIN_SERVOS; }
 
-    float constrain(float val, float min, float max);
     float computeValueFromCurve(float pointA, float minRangeA, float maxRangeA, float *curveA, uint32_t numPointsA);
 
 private:
-    /* do not allow to copy */
-    V22OspreyMixer(const V22OspreyMixer &);
-    V22OspreyMixer operator=(const V22OspreyMixer &);
-
 	uint8_t setup_flag;
     float rollVolCurve[NUM_VOL_POINTS];
 	float foreAftVolCurve[NUM_VOL_POINTS];
@@ -122,5 +120,3 @@ private:
 	float rightColCurve[NUM_COL_POINTS];
 	V22OspreyServo servos[NUM_MAIN_SERVOS];
 };
-
-#endif

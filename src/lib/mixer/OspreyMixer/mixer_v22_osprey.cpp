@@ -36,23 +36,10 @@
  *
  * V22 Osprey mixers.
  */
-#include <px4_config.h>
-#include <sys/types.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <errno.h>
-#include <stdio.h>
-#include <math.h>
-#include <unistd.h>
-#include <math.h>
-
-#include <px4iofirmware/protocol.h>
-
-#include "mixer.h"
+#include <mathlib/mathlib.h>
+#include <cstdio>
+#include <px4_platform_common/defines.h>
+#include "mixer_v22_osprey.h"
 
 
 V22OspreyMixer::V22OspreyMixer( ControlCallback control_cb, uintptr_t cb_handle,
@@ -92,14 +79,6 @@ V22OspreyMixer::V22OspreyMixer( ControlCallback control_cb, uintptr_t cb_handle,
 V22OspreyMixer::~V22OspreyMixer()
 {
 }
-
-
-
-float V22OspreyMixer::constrain(float val, float min, float max)
-{
-    return (val < min) ? min : ((val > max) ? max : val);
-}
-
 
 
 float V22OspreyMixer::computeValueFromCurve(float pointA, float minRangeA, float maxRangeA, float *curveA, uint32_t numPointsA)
@@ -315,29 +294,26 @@ unsigned V22OspreyMixer::mix(float *outputs, unsigned space)
     float ctrlL[NUM_CONTROLS];
     float nacelleL;
     float col_valueL;
+    int32_t grpL;
 
     if(space < NUM_MAIN_SERVOS)
         return 0;
 
     //  GET THE CONTROL DATA AND ZERO THE OUTPUTS
-    if(setup_flag)
-    {
-        ctrlL[AIL] = get_control(3, AIL);
-        ctrlL[ELEV] = get_control(3, ELEV);
-        ctrlL[RUD] = get_control(3, RUD);
-    }
+    /*if(setup_flag)
+        grpL = 3;
     else
-    {
-        ctrlL[AIL] = get_control(0, AIL);
-        ctrlL[ELEV] = get_control(0, ELEV);
-        ctrlL[RUD] = get_control(0, RUD);
-    }
+        grpL = 0;
+    */
+    grpL = 0;
+    ctrlL[AIL] = get_control(grpL,0);
+    ctrlL[ELEV] = get_control(grpL,1);
+    ctrlL[RUD] = get_control(grpL,2);
 
-    //ctrlL[THR] = get_control(3, 3);
-    //ctrlL[COL] = get_control(0, THR);
     ctrlL[THR] = get_control(0, THR);
-    ctrlL[COL] = get_control(3, 3);
-    ctrlL[NACELLE] = -get_control(3, 5);
+    ctrlL[COL] = get_control(3, 5);
+    ctrlL[NACELLE] = -get_control(3, 6);
+    printf("os ctrls A %d E %d R %d T %d C %d N %d\n", (int)(ctrlL[AIL]*1000), (int)(ctrlL[ELEV]*1000), (int)(ctrlL[RUD]*1000), (int)(ctrlL[THR]*1000), (int)(ctrlL[COL]*1000), (int)(ctrlL[NACELLE]*1000));
 
     //  CHANGE THE NACELLE TO 0->1 RANGE FOR COMPUTATIONS
     nacelleL = (ctrlL[NACELLE] + 1.0f) / 2.0f;
@@ -425,15 +401,15 @@ unsigned V22OspreyMixer::mix(float *outputs, unsigned space)
     outputs[RIGHT_SN] = ctrlL[NACELLE];
 
     //  CONSTRAIN THE OUTPUTS
-    outputs[LEFT_S0] = constrain(outputs[LEFT_S0], -1.0f, 1.0f);
-    outputs[LEFT_S1] = constrain(outputs[LEFT_S1], -1.0f, 1.0f);
-    outputs[LEFT_ST] = constrain(outputs[LEFT_ST], -1.0f, 1.0f);
-    outputs[LEFT_SN] = constrain(outputs[LEFT_SN], -1.0f, 1.0f);
+    outputs[LEFT_S0] = math::constrain(outputs[LEFT_S0], -1.0f, 1.0f);
+    outputs[LEFT_S1] = math::constrain(outputs[LEFT_S1], -1.0f, 1.0f);
+    outputs[LEFT_ST] = math::constrain(outputs[LEFT_ST], -1.0f, 1.0f);
+    outputs[LEFT_SN] = math::constrain(outputs[LEFT_SN], -1.0f, 1.0f);
 
-    outputs[RIGHT_S0] = -constrain(outputs[RIGHT_S0], -1.0f, 1.0f);
-    outputs[RIGHT_S1] = -constrain(outputs[RIGHT_S1], -1.0f, 1.0f);
-    outputs[RIGHT_ST] =  constrain(outputs[RIGHT_ST], -1.0f, 1.0f);
-    outputs[RIGHT_SN] = -constrain(outputs[RIGHT_SN], -1.0f, 1.0f);
+    outputs[RIGHT_S0] = -math::constrain(outputs[RIGHT_S0], -1.0f, 1.0f);
+    outputs[RIGHT_S1] = -math::constrain(outputs[RIGHT_S1], -1.0f, 1.0f);
+    outputs[RIGHT_ST] =  math::constrain(outputs[RIGHT_ST], -1.0f, 1.0f);
+    outputs[RIGHT_SN] = -math::constrain(outputs[RIGHT_SN], -1.0f, 1.0f);
 
     //  SCALE SERVOS TO PROPER RANGE
     for (iL=0; iL<NUM_MAIN_SERVOS; iL++)
@@ -447,6 +423,6 @@ unsigned V22OspreyMixer::mix(float *outputs, unsigned space)
 void
 V22OspreyMixer::groups_required(uint32_t &groups)
 {
-	/* XXX for now, hardcoded to indexes 0-3 in control group zero */
 	groups |= (1 << 0);
+    groups |= (1 << 3);
 }
